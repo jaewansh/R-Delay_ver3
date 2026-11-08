@@ -1,6 +1,6 @@
 # GitHub에 올리고 앱 확인하기
 
-> 이 저장소(jaewansh/R-Delay_ver2)의 데모 주소: https://jaewansh.github.io/R-Delay_ver2/
+> 이 저장소(jaewansh/R-Delay_ver3)의 데모 주소: https://jaewansh.github.io/R-Delay_ver3/
 
 이 저장소는 웹 앱이 빌드 과정 없이 `docs/` 폴더에 그대로 들어 있습니다. GitHub에 올린 뒤 **Pages 설정을 한 번**만 하면 누구나 주소로 앱을 열 수 있습니다. 서버는 필요 없고, 계산 엔진(Python)도 브라우저 안에서 실행됩니다.
 
@@ -10,38 +10,38 @@
 
 ### 처음 올릴 때(새 저장소)
 
-GitHub에 `jaewansh/R-Delay_ver2`가 아직 없을 때 한 번만 합니다.
+GitHub에 `jaewansh/R-Delay_ver3`가 아직 없을 때 한 번만 합니다.
 
-1. 빈 **공개(Public)** 저장소를 만듭니다. https://github.com/new 에서 이름을 `R-Delay_ver2`로 하고 README·.gitignore·license는 추가하지 않습니다. 2번의 `gh repo create`를 쓰면 이 단계는 건너뜁니다.
+1. 빈 **공개(Public)** 저장소를 만듭니다. https://github.com/new 에서 이름을 `R-Delay_ver3`로 하고 README·.gitignore·license는 추가하지 않습니다. 2번의 `gh repo create`를 쓰면 이 단계는 건너뜁니다.
 2. 저장소 폴더 맨 위에서 커밋한 뒤 올립니다.
 
    ```bash
-   cd R-Delay_ver2
+   cd R-Delay_ver3
    git add -A                                            # .gitignore가 자료·캐시·.env를 뺍니다
    python3 -m pytest -q tests/test_no_data_in_repo.py    # 올릴 파일에 자료가 없는지 확인(requirements.txt 설치 후)
-   git commit -m "R-Delay_ver2: 코드와 문서"
+   git commit -m "R-Delay_ver3: 코드와 문서"
    # (가) GitHub CLI: 공개 저장소를 만들면서 바로 올리기
-   gh repo create jaewansh/R-Delay_ver2 --public --source=. --remote=origin --push
+   gh repo create jaewansh/R-Delay_ver3 --public --source=. --remote=origin --push
    # (나) 1번에서 웹으로 만든 빈 저장소에 올리기
-   git remote add origin https://github.com/jaewansh/R-Delay_ver2.git && git push -u origin main
+   git remote add origin https://github.com/jaewansh/R-Delay_ver3.git && git push -u origin main
    ```
 
 3. 저장소의 **Settings → Pages**에서 `main` 브랜치의 `/docs` 폴더를 고르고 저장합니다([2절](#2-github-pages-켜기)).
 
 ### 방법 A. git 명령어 — GitHub 저장소가 이미 연결된 폴더일 때
 
-`git remote -v`에 `origin  https://github.com/jaewansh/R-Delay_ver2.git`이 나오는 폴더라면 푸시만 하면 됩니다.
+`git remote -v`에 `origin  https://github.com/jaewansh/R-Delay_ver3.git`이 나오는 폴더라면 푸시만 하면 됩니다.
 
 ```bash
-cd R-Delay_ver2
+cd R-Delay_ver3
 git push origin main --follow-tags
 ```
 
 새로 고친 파일을 올릴 때는 다음 순서입니다.
 
 ```bash
-git clone https://github.com/jaewansh/R-Delay_ver2.git
-cd R-Delay_ver2
+git clone https://github.com/jaewansh/R-Delay_ver3.git
+cd R-Delay_ver3
 # 파일을 바꾼 뒤
 git add -A
 git commit -m "R-Delay 수정"
@@ -53,29 +53,29 @@ GitHub 로그인 창이 뜨면 저장소 주인 계정으로 로그인합니다.
 ### 방법 B. GitHub Desktop
 
 1. https://desktop.github.com 에서 설치하고 GitHub 계정으로 로그인합니다.
-2. **File → Add local repository**에서 `R-Delay_ver2` 폴더를 고릅니다. GitHub Desktop은 `.gitignore`를 따르므로 작업 폴더를 그대로 써도 됩니다.
+2. **File → Add local repository**에서 `R-Delay_ver3` 폴더를 고릅니다. GitHub Desktop은 `.gitignore`를 따르므로 작업 폴더를 그대로 써도 됩니다.
 3. 바뀐 파일이 있으면 왼쪽 아래 Summary를 적고 **Commit to main**을 누릅니다.
 4. 오른쪽 위 **Push origin**을 누릅니다.
-   - 아직 GitHub에 없는 새 저장소라면 이 자리에 **Publish repository**가 나옵니다. 이름을 `R-Delay_ver2`로 두고 **Keep this code private**의 체크를 끈 뒤 올립니다. 무료 계정에서는 공개 저장소여야 Pages가 켜집니다.
+   - 아직 GitHub에 없는 새 저장소라면 이 자리에 **Publish repository**가 나옵니다. 이름을 `R-Delay_ver3`로 두고 **Keep this code private**의 체크를 끈 뒤 올립니다. 무료 계정에서는 공개 저장소여야 Pages가 켜집니다.
 
 ### 방법 C. 웹 브라우저로 끌어다 놓기 — 새 저장소일 때만
 
 작업 폴더에서 바로 끌어다 놓으면 안 됩니다. 작업 폴더에는 올리면 안 되는 로컬 파일(`realdata/cache/`, `realdata/results/`, `realdata/reports/`, `local_only/`, `presentation/`, `realdata/WORKLOG.md`, `data-kit/data/`, `.env` 등)이 함께 있고, 웹 업로드는 `.gitignore`를 따르지 않습니다. git이 추적하는 파일만 새 폴더에 복사한 뒤 그 복사본에서만 올립니다.
 
-1. 저장소 폴더 맨 위에서 올릴 파일만 새 폴더 `../R-Delay_ver2_upload/`에 복사합니다(그 폴더가 이미 있으면 먼저 지웁니다).
+1. 저장소 폴더 맨 위에서 올릴 파일만 새 폴더 `../R-Delay_ver3_upload/`에 복사합니다(그 폴더가 이미 있으면 먼저 지웁니다).
 
    ```bash
    # 첫 커밋 전: 스테이징한 파일을 그대로 복사
    git add -A
-   git checkout-index -a --prefix=../R-Delay_ver2_upload/
+   git checkout-index -a --prefix=../R-Delay_ver3_upload/
    # 커밋한 뒤: 마지막 커밋을 압축했다가 풀기
-   git archive --format=zip -o ../R-Delay_ver2.zip HEAD
-   unzip ../R-Delay_ver2.zip -d ../R-Delay_ver2_upload
+   git archive --format=zip -o ../R-Delay_ver3.zip HEAD
+   unzip ../R-Delay_ver3.zip -d ../R-Delay_ver3_upload
    ```
 
    - 복사본에는 `git ls-files`에 나오는 파일만 들어갑니다. `git ls-files`에 없는 파일은 로컬 파일이므로 올리지 않습니다.
 2. 새 저장소 화면에서 **uploading an existing file**을 누릅니다.
-3. 복사본 `R-Delay_ver2_upload` 폴더 **안의** 항목을 모두 골라 업로드 영역에 끌어다 놓습니다.
+3. 복사본 `R-Delay_ver3_upload` 폴더 **안의** 항목을 모두 골라 업로드 영역에 끌어다 놓습니다.
    - 대상: `docs`, `realdata`, `scripts`, `tests`, `data-kit`, `image`, `.github`, `README.md`, `REPORT.md`, `MODEL.md`, `GUIDE_GITHUB.md`, `LICENSE`, `requirements.txt`, `requirements-backtest.txt`, `.gitignore`
    - Chrome·Edge에서는 폴더째 끌어다 놓으면 폴더 구조가 그대로 올라갑니다.
    - 맥 Finder는 `.github`·`.gitignore`를 숨깁니다. Cmd+Shift+.(마침표)를 눌러 보이게 한 뒤 고릅니다.
@@ -83,30 +83,30 @@ GitHub 로그인 창이 뜨면 저장소 주인 계정으로 로그인합니다.
 
 > 한 번에 100개 파일까지 올릴 수 있습니다(이 저장소는 120개가 넘어 두 번에 나눠 올립니다). 웹 업로드로는 예전 파일을 지울 수 없습니다. 기존 저장소를 바꿀 때는 방법 A나 B를 쓰세요.
 
-> 확인: 저장소 첫 화면에 `docs` 폴더가 바로 보이고 `docs/index.html`이 있어야 합니다. `R-Delay_ver2/docs/...`처럼 한 단계 더 들어가 있으면 Pages가 찾지 못합니다.
+> 확인: 저장소 첫 화면에 `docs` 폴더가 바로 보이고 `docs/index.html`이 있어야 합니다. `R-Delay_ver3/docs/...`처럼 한 단계 더 들어가 있으면 Pages가 찾지 못합니다.
 
 ## 2. GitHub Pages 켜기
 
 1. 저장소에서 **Settings**를 열고 왼쪽 메뉴의 **Pages**로 갑니다.
 2. **Build and deployment → Source**를 **Deploy from a branch**로 둡니다.
 3. **Branch**는 `main`, 폴더는 <b>`/docs`</b>를 고르고 **Save**를 누릅니다.
-4. 1\~3분 뒤 같은 화면 위쪽에 <b>"Your site is live at https://&lt;GitHub아이디&gt;.github.io/R-Delay_ver2/"</b>가 나타납니다. 진행 상황은 **Actions** 탭(pages build and deployment)에서도 볼 수 있습니다.
+4. 1\~3분 뒤 같은 화면 위쪽에 <b>"Your site is live at https://&lt;GitHub아이디&gt;.github.io/R-Delay_ver3/"</b>가 나타납니다. 진행 상황은 **Actions** 탭(pages build and deployment)에서도 볼 수 있습니다.
 
 명령어로 켜려면(GitHub CLI):
 
 ```bash
-gh api -X POST "repos/<GitHub아이디>/R-Delay_ver2/pages" -f "source[branch]=main" -f "source[path]=/docs"
+gh api -X POST "repos/<GitHub아이디>/R-Delay_ver3/pages" -f "source[branch]=main" -f "source[path]=/docs"
 ```
 
 ## 3. 앱 확인하기
 
 | 무엇을 볼까 | 주소 |
 |---|---|
-| 배차 담당자 화면(배차판·브리핑) | `https://<GitHub아이디>.github.io/R-Delay_ver2/` |
-| 장면·화물 바로 열기 | `…/R-Delay_ver2/?s=terminal_failure&c=ulsan_export` |
-| 기사님 화면 | `…/R-Delay_ver2/driver.html?s=terminal_failure&c=ulsan_export&a=1` |
-| 분석 화면 | `…/R-Delay_ver2/analysis.html?s=terminal_failure` |
-| 작동 원리·검증 | `…/R-Delay_ver2/method.html` |
+| 배차 담당자 화면(배차판·브리핑) | `https://<GitHub아이디>.github.io/R-Delay_ver3/` |
+| 장면·화물 바로 열기 | `…/R-Delay_ver3/?s=terminal_failure&c=ulsan_export` |
+| 기사님 화면 | `…/R-Delay_ver3/driver.html?s=terminal_failure&c=ulsan_export&a=1` |
+| 분석 화면 | `…/R-Delay_ver3/analysis.html?s=terminal_failure` |
+| 작동 원리·검증 | `…/R-Delay_ver3/method.html` |
 
 - **장면**(`s`): `base` 평시, `terminal_failure` 장비 고장, `typhoon_diversion` 태풍 우회 물량, `holiday_surge` 명절 물량, `epidemic` 감염병 결근, `h2_trucks` 수소 트럭.
 - **화물**(`c`): `import_factory` 양산 공장 원자재, `ulsan_parts` 울산 완성차 부품, `sea_air` Sea&Air 인천, `ulsan_export` 울산 부품 수출.

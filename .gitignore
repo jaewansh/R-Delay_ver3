@@ -21,7 +21,7 @@ data-kit/.env
 realdata/cache/
 local_only/
 presentation/
-# R-Delay_ver2 공개 저장소에는 코드·문서만 올린다(2026-11-07 결정). 실자료에서 나온 결과·그림·점검 보고서·웹용 집계는 로컬에만 둔다
+# 공개 저장소(R-Delay_ver2, 이를 이어받은 R-Delay_ver3)에는 코드·문서만 올린다(2026-11-07 결정). 실자료에서 나온 결과·그림·점검 보고서·웹용 집계는 로컬에만 둔다
 realdata/results/
 realdata/reports/
 docs/data/backtest*.json

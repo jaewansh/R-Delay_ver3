@@ -65,9 +65,9 @@ fs.mkdirSync(OUT, { recursive: true });
   const marks = [];
   const mark = (name) => marks.push({ name, t: Date.now() / 1000 });
 
-  // 1. 오늘 화물부터
+  // 1. 오늘 관리 화물부터
   mark("s1");
-  await S(() => window.setCap(1, "오전 10시,<br><em>오늘 화물</em>부터 봅니다", "신항 지연이 번지는지, 내 화물 중<br>무엇이 위험한지 한 화면에"));
+  await S(() => window.setCap(1, "오전 10시,<br><em>관리 화물</em>부터 봅니다", "신항 지연이 번지는지, 고객 화물 중<br>무엇이 위험한지 한 화면에"));
   await S(() => window.moveCursor(700, 640));
   await wait(900);
   const chain = await box("#chain");
@@ -106,9 +106,9 @@ fs.mkdirSync(OUT, { recursive: true });
   await wait(2600);
   await hl(null);
 
-  // 4. 기사님 링크
+  // 4. 운송사 배차 요청 · 기사님 링크
   mark("s4");
-  await S(() => window.setCap(4, "기사님께는<br><em>링크 하나</em>로", "바뀐 출발 시각과 주의사항을 담은 배차 지시,<br>휴대폰에서 바로 확인"));
+  await S(() => window.setCap(4, "운송사에는<br><em>배차 요청 하나</em>로", "바뀐 출발 시각과 기사님 화면 링크를 담아<br>협력 운송사에 바로 전달"));
   await hl(null);
   await zoom(".brief", 1.6, 10, 470);
   const paper = await box("#paper");
@@ -135,9 +135,9 @@ fs.mkdirSync(OUT, { recursive: true });
   await click("#copy", () => document.getElementById("copy").click());
   await wait(1900);
 
-  // 6. 사내 보고·항만 협의
+  // 6. 사내 보고·선사·터미널 협의
   mark("s6");
-  await S(() => window.setCap(6, "사내 보고와<br><em>항만 협의</em> 자료까지", "같은 계산으로 오늘 전체 브리핑과<br>'무엇을 먼저 풀어야 하나'를 한 번에"));
+  await S(() => window.setCap(6, "사내 보고와<br><em>선사·터미널 협의</em>까지", "같은 계산으로 오늘 전체 브리핑과<br>우선 하역 요청을 한 번에"));
   await zoom(".brief", 1.6, 10, 470);
   await click('.tab[data-doc="internal"]', () => window.__rdelay.setDoc("internal"));
   await wait(1500);
@@ -145,8 +145,14 @@ fs.mkdirSync(OUT, { recursive: true });
   await wait(1700);
   await click('.tab[data-doc="port"]', () => window.__rdelay.setDoc("port"));
   await wait(900);
-  await app.evaluate(() => { const p = document.getElementById("paper"); p.scrollTo({ top: 380, behavior: "smooth" }); });
-  await wait(2200);
+  // 선사·터미널 협의: 맨 아래 「4. 요청드립니다」(우선 하역 요청)까지 내려 보여 준다
+  await app.evaluate(() => {
+    const p = document.getElementById("paper");
+    const h = [...p.querySelectorAll("h4")].find((x) => x.textContent.startsWith("4."));
+    const top = h ? h.getBoundingClientRect().top - p.getBoundingClientRect().top + p.scrollTop - 24 : 380;
+    p.scrollTo({ top, behavior: "smooth" });
+  });
+  await wait(2600);
 
   // 7. 상황별
   mark("s7");

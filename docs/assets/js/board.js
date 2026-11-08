@@ -1,8 +1,8 @@
-// R-Delay 배차 브리핑 화면: 상황 띠 → 배차판(시간축 위 오늘 화물) → 브리핑 문서.
+// R-Delay 포워더 브리핑 화면: 상황 띠 → 화물판(시간축 위 오늘 관리 화물) → 브리핑 문서(화주 안내·배차 요청·사내 보고·선사·터미널 협의).
 // 판단 규칙은 derive.js, 문서 문장은 briefing.js가 만든다. 여기서는 그리기와 클릭만 다룬다.
-import { statusView, sortedCargo, classifyCargo, cargoView, nodeState, STATE_WORD, trustLines } from "./derive.js?v=20261107a";
-import { SCENARIO_CHIP, clock, clock10, fmtP, fmtRd, fmtDur, asOfText, nextUpdateText, CARGO_SHORT } from "./format.js?v=20261107a";
-import { DOC_KINDS, buildDoc, docToText, docToHTML, driverLink, cargoFacts, DEFAULT_SENDER, josa } from "./briefing.js?v=20261107a";
+import { statusView, sortedCargo, classifyCargo, cargoView, nodeState, STATE_WORD, trustLines } from "./derive.js?v=20261109a";
+import { SCENARIO_CHIP, clock, clock10, fmtP, fmtRd, fmtDur, asOfText, nextUpdateText, CARGO_SHORT } from "./format.js?v=20261109a";
+import { DOC_KINDS, buildDoc, docToText, docToHTML, driverLink, cargoFacts, DEFAULT_SENDER, josa } from "./briefing.js?v=20261109a";
 
 const $ = (id) => document.getElementById(id);
 const HOURS = 20; // 10:00 → 내일 06:00
@@ -10,8 +10,8 @@ const pos = (t) => Math.max(0, Math.min(100, (t / HOURS) * 100));
 const T = (t) => clock(t, false);
 const ORDER = ["base", "terminal_failure", "typhoon_diversion", "holiday_surge", "epidemic", "h2_trucks"];
 const SENDER_KEY = "rdelay-sender";
-// 안내문에 넣는 기사님 링크는 받는 사람이 열 수 있는 공개 주소여야 한다(로컬·오프라인 시연 중에도)
-const PUBLIC_BASE = "https://jaewansh.github.io/R-Delay_ver2/";
+// 배차 요청에 넣는 기사님 링크는 받는 사람(운송사·기사님)이 열 수 있는 공개 주소여야 한다(로컬·오프라인 시연 중에도)
+const PUBLIC_BASE = "https://jaewansh.github.io/R-Delay_ver3/";
 const linkBase = () => (/^https?:$/.test(location.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) ? location.href : PUBLIC_BASE);
 const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
 
@@ -86,7 +86,7 @@ function renderRibbon(r) {
   $("next").textContent = nextUpdateText(r);
 }
 
-// ---------- 배차판 ----------
+// ---------- 화물판 ----------
 function renderAxis() {
   const ticks = [];
   for (let t = 0; t <= HOURS; t += 2) {
@@ -99,7 +99,7 @@ function renderAxis() {
 
 function rowAction(r, key, f, v) {
   const { cls, plan, choice, best, verb, c } = f;
-  if (f.changed) return `${T(choice.time)} ${verb}${isH2(choice) ? "(수소)" : ""}로 변경 — 기사님께 알리세요`;
+  if (f.changed) return `${T(choice.time)} ${verb}${isH2(choice) ? "(수소)" : ""}로 변경 — 운송사에 배차 요청을 보내세요`;
   if (cls === "change") return v.action;
   if (cls === "notify") return "화주에게 미리 알리세요";
   if (cls === "hold-conservative") return `화주에게 알리고 ${nextUpdateText(r)}에 다시 확인하세요`;
@@ -163,7 +163,7 @@ function decisionHTML(f) {
   if (f.changed) {
     const [v, u] = bigP(choice.p_fail);
     risk = `<span class="risk-from">${bigP(plan.p_fail).join("")}</span><span class="risk-v" data-risk="${riskLevel(choice.p_fail, eps)}">${v}<small>${u}</small></span>`;
-    btns = `<button type="button" class="btn" data-act="driver">기사 지시</button><button type="button" class="btn-quiet undo" data-act="undo">되돌리기</button>`;
+    btns = `<button type="button" class="btn" data-act="driver">배차 요청</button><button type="button" class="btn-quiet undo" data-act="undo">되돌리기</button>`;
   } else if (cls === "change" || cls === "optional") {
     const p = cls === "change" ? plan.p_fail : plan.p_fail;
     const [v, u] = bigP(p);
@@ -183,7 +183,7 @@ function decisionHTML(f) {
   } else {
     const [v, u] = bigP(plan.p_fail);
     risk = `<span class="risk-v" data-risk="${riskLevel(plan.p_fail, eps)}">${v}<small>${u}</small></span>`;
-    btns = `<button type="button" class="btn" data-act="driver">기사 지시</button>`;
+    btns = `<button type="button" class="btn" data-act="driver">배차 요청</button>`;
   }
   return `<p class="risk"><span class="risk-l">마감 놓칠 확률</span>${risk}</p>${btns}`;
 }
@@ -201,10 +201,11 @@ function renderBoard(r) {
     cnt[lv] += 1;
     const sel = key === state.key;
     const route = `${f.meta.origin} → ${f.meta.dest} · 마감 ${clock(f.c.deadline)}`;
+    const cust = f.meta.customer || f.meta.shipper;
     const tip = rowTip(r, f);
     return `<li class="row grid3" data-key="${key}" data-cls="${f.cls}" aria-selected="${sel}" tabindex="0">
       <div class="row-info">
-        <span class="pill" data-level="${lv}"><span class="shape" data-s="${SHAPE[lv] || "dia"}" aria-hidden="true"></span>${word}</span>
+        <span class="pill" data-level="${lv}"><span class="shape" data-s="${SHAPE[lv] || "dia"}" aria-hidden="true"></span>${word}</span><span class="row-cust">화주 ${esc(cust)}</span>
         <h3 class="row-name">${esc(CARGO_SHORT[key] || f.c.label)}</h3>
         <p class="row-route">${esc(route)}</p>
         <p class="row-act">${esc(rowAction(r, key, f, v))}</p>

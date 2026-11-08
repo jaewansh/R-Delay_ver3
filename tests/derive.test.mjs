@@ -73,10 +73,10 @@ test("24시간 카드: 중앙값만으로 '1 아래에 머물'을 말하지 않�
 });
 
 test("할 일 요약", () => {
-  assert.equal(todoView(R.base).text, "오늘 화물 4건 모두 계획대로 진행 가능");
-  assert.equal(todoView(R.terminal_failure).text, "오늘 화물 4건 — 시간 변경 1 · 화주 안내 3");
-  assert.equal(todoView(R.holiday_surge).text, "오늘 화물 4건 — 시간 변경 1 · 다시 확인 1 · 계획대로 2");
-  assert.equal(todoView(R.h2_trucks).text, "오늘 화물 4건 모두 계획대로 진행 가능 · 수소 트럭 가능 3건 · 불가 1건");
+  assert.equal(todoView(R.base).text, "오늘 관리 화물 4건 모두 계획대로 진행 가능");
+  assert.equal(todoView(R.terminal_failure).text, "오늘 관리 화물 4건 — 시간 변경 1 · 화주 안내 3");
+  assert.equal(todoView(R.holiday_surge).text, "오늘 관리 화물 4건 — 시간 변경 1 · 다시 확인 1 · 계획대로 2");
+  assert.equal(todoView(R.h2_trucks).text, "오늘 관리 화물 4건 모두 계획대로 진행 가능 · 수소 트럭 가능 3건 · 불가 1건");
 });
 
 test("화물 분류는 엔진 판단과 맞는다(6장면 × 4화물)", () => {

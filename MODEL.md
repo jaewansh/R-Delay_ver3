@@ -167,7 +167,7 @@ a^\star=\arg\min_{a\in\mathcal A_{\mathrm{feas}},\ \hat p^{+}(a)\le\varepsilon}\
 
 ## 10. 검증 방법 (`scripts/validate.py`)
 
-시나리오마다 `world`만 바꿔(2000\~2059) 60번 실행하고 합성 참값과 대조합니다. 결과는 `docs/data/validation.json`과 웹 [작동 원리·검증](https://jaewansh.github.io/R-Delay_ver2/method.html#valid) 페이지, [REPORT.md](REPORT.md#검증-합성-세계-60개)에 있습니다. 필터는 참 세계의 구조와 정적 모수를 아는 조건입니다.
+시나리오마다 `world`만 바꿔(2000\~2059) 60번 실행하고 합성 참값과 대조합니다. 결과는 `docs/data/validation.json`과 웹 [작동 원리·검증](https://jaewansh.github.io/R-Delay_ver3/method.html#valid) 페이지, [REPORT.md](REPORT.md#검증-합성-세계-60개)에 있습니다. 필터는 참 세계의 구조와 정적 모수를 아는 조건입니다.
 
 - **판단 시각 확산 경보**: $P(R_d>1)\ge0.5$ 대 참 $R_d(0)>1$의 적중·오경보·미탐.
 - **선행시간**: 과거 24시간에서 첫 경보(확산 또는 적체)와 참 적체 시작(참 $x_i$가 기준을 처음 넘은 시각)의 차이. 비교 기준선: ① 운영자 처리능력 공지·장비 고장 신호가 들어오면 즉시 경보하는 규칙, ② 공지를 가린 관측 단독 추정(`mask_notices`, 세계 30개, 끝내 경보가 없던 세계 수도 함께). $P(R_d>1)$ Brier 점수도 ‘공지 중이면 1’인 지시 규칙, 공지 가림과 비교합니다.

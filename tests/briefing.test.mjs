@@ -86,6 +86,27 @@ test("항만 협의: 번짐을 멈추는 대응을 반사실로 고른다", () =
   assert.match(docToText(portDoc(R.terminal_failure)), /책임 소재 판단에 쓰지 않습니다/);
 });
 
+test("포워더 문서: 운송사 배차 요청과 선사·터미널 요청 사항", () => {
+  const run = R.terminal_failure;
+  const d = driverDoc(run, "ulsan_export", { applied: true });
+  assert.match(d.title, /^\[배차 요청\] 울산 부품 수출 · 시간 변경$/);
+  assert.equal(d.meta[0][1], "협력 운송사 배차 담당자");
+  const t = docToText(d);
+  assert.match(t, /출발 시각이 바뀌어 배차를 다시 요청드립니다/);
+  assert.match(t, /화주: 울산 ○○정공/);
+  assert.match(docToText(driverDoc(run, "import_factory", { driverUrl: "https://example.org/driver.html" })), /기사님께 전달해 주세요/);
+  const p = docToText(portDoc(run));
+  assert.match(p, /R-Delay로 관리하는 포워더입니다/);
+  assert.match(p, /■ 3\. 고객 화물 영향/);
+  assert.match(p, /■ 4\. 요청드립니다/);
+  assert.match(p, /우선 하역 요청 — 받아들여지면 놓칠 확률 52% → 26%/);
+  assert.ok(!portDoc(R.base).blocks.some((b) => b.h === "4. 요청드립니다"), "평시에는 요청 사항이 없다");
+  // 화주 안내에는 포워더가 하는 일(운송사 차량 요청·항공편 확인)이 들어간다
+  const sh = docToText(shipperDoc(run, "sea_air"));
+  assert.match(sh, /협력 운송사에 터미널 \d{2}:\d{2} 도착으로 차량을 요청해 두었습니다/);
+  assert.match(sh, /다음 항공편 예약 가능 여부를 항공사와 미리 확인해 두겠습니다/);
+});
+
 test("기사님 화면 한 줄: 수입은 반출 뒤 도착, 수출은 반입 금지 전", () => {
   const run = R.terminal_failure;
   assert.equal(driverHeadline(run, "import_factory").big, "21:40 이후 도착");

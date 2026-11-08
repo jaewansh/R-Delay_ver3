@@ -1,7 +1,7 @@
 """공개 저장소에 데이터가 들어가지 않았는지 본다. pytest 말고는 표준 라이브러리만 쓴다(웹앱용 CI 'test' 작업에서도 돈다).
 
 규칙의 출처: 사용자 결정(2026-11-07) "GitHub에는 데이터를 올리지 않는다."
-R-Delay_ver2 공개 저장소에는 코드와 문서만 둔다. 원자료·캐시, 실자료에서 나온 결과 JSON·그림·점검 보고서·집계는
+공개 저장소(R-Delay_ver2, 이를 이어받은 R-Delay_ver3)에는 코드와 문서만 둔다. 원자료·캐시, 실자료에서 나온 결과 JSON·그림·점검 보고서·집계는
 로컬에만 두고 .gitignore로 막는다. 이 테스트는 git이 추적하는 파일(git ls-files: 커밋됐거나 스테이징된 파일)만 본다.
 - docs/data/에는 화면용 합성 자료 3개(ai_model.json·precomputed.json·validation.json)만 둔다.
 - 경로에 'results'나 'reports' 폴더가 있으면 막는다(realdata/·realdata_ship/ 등 실자료 결과·보고서 자리).

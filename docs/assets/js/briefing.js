@@ -1,41 +1,43 @@
-// 상황별 브리핑 초안: 엔진 결과(run) → 화주 안내 · 기사 지시 · 사내 보고 · 항만 협의 문서.
+// 상황별 브리핑 초안(중소 포워더용): 엔진 결과(run) → 화주 안내 · 운송사 배차 요청 · 사내 보고 · 선사·터미널 협의 문서.
 // DOM을 건드리지 않는 순수 함수다(tests/briefing.test.mjs로 확인). 문장 안의 숫자는 모두 엔진 출력에서 온다.
 // 판단 규칙(분류·놓칠 확률·추천 시각)은 derive.js를 그대로 쓰고, 여기서는 받는 사람에 맞춰 말투와 순서만 바꾼다.
 import {
   classifyCargo, verbOf, statusView, sortedCargo, sameIfEarly, nodeState, STATE_WORD, isHold, driverAdvice,
-} from "./derive.js?v=20261107a";
+} from "./derive.js?v=20261109a";
 import {
   NODE_NAME, SCENARIO_CHIP, CARGO_SHORT, clock, clock10, clock10ceil, fmtDur, fmtP, fmtWon, fmtRd, fmtCap, nextUpdateText,
-} from "./format.js?v=20261107a";
+} from "./format.js?v=20261109a";
 
 export const DOC_KINDS = [
   { key: "shipper", label: "화주 안내", scope: "cargo" },
-  { key: "driver", label: "기사 지시", scope: "cargo" },
+  { key: "driver", label: "배차 요청", scope: "cargo" },
   { key: "internal", label: "사내 보고", scope: "day" },
-  { key: "port", label: "항만 협의", scope: "day" },
+  { key: "port", label: "선사·터미널 협의", scope: "day" },
 ];
 
-// 시연용 화물 정보(가상). 컨테이너 번호의 RDLU는 R-Delay 시연용 접두어다.
+// 시연용 화물 정보(가상). 포워더가 맡은 고객(화주) 화물 4건이다. 컨테이너 번호의 RDLU는 R-Delay 시연용 접두어다.
+// customer는 화물판에 쓰는 짧은 화주 이름, we는 포워더가 그 화물을 위해 하는 일(있을 때만)이다.
 export const CARGO_META = {
   import_factory: {
-    shipper: "양산 ○○산업 생산관리팀", container: "RDLU 100001-1", origin: "부산신항", dest: "양산 공장",
+    customer: "양산 ○○산업", shipper: "양산 ○○산업 생산관리팀", container: "RDLU 100001-1", origin: "부산신항", dest: "양산 공장",
     work: "신항 수입 컨테이너 반출 → 양산 공장 야간 라인", ask: "야간 라인 투입 순서를 바꾸거나 대체 원자재를 쓸 수 있는지 검토해 주십시오.",
   },
   ulsan_parts: {
-    shipper: "울산 ○○오토 부품물류팀", container: "RDLU 100002-7", origin: "부산신항", dest: "울산 완성차 공장",
+    customer: "울산 ○○오토", shipper: "울산 ○○오토 부품물류팀", container: "RDLU 100002-7", origin: "부산신항", dest: "울산 완성차 공장",
     work: "신항 수입 컨테이너 반출 → 울산 완성차 라인", ask: "라인 투입 순서 조정이나 안전재고 투입을 검토해 주십시오.",
   },
   sea_air: {
-    shipper: "○○포워딩 항공수출팀", container: "RDLU 100003-2", origin: "부산신항", dest: "인천공항 화물터미널",
-    work: "신항 환적 컨테이너 반출 → 인천공항 화물터미널 반입", ask: "다음 항공편 예약이 가능한지 항공사와 미리 확인해 주십시오.",
+    customer: "○○전자", shipper: "○○전자 해외물류팀", container: "RDLU 100003-2", origin: "부산신항", dest: "인천공항 화물터미널",
+    work: "신항 환적 컨테이너 반출 → 인천공항 화물터미널 반입", ask: "다음 항공편으로 넘어가도 최종 도착 일정에 문제가 없는지 알려 주십시오.",
+    we: "다음 항공편 예약 가능 여부를 항공사와 미리 확인해 두겠습니다.",
   },
   ulsan_export: {
-    shipper: "울산 ○○정공 수출팀", container: "RDLU 100004-8", origin: "울산 공장", dest: "부산신항",
+    customer: "울산 ○○정공", shipper: "울산 ○○정공 수출팀", container: "RDLU 100004-8", origin: "울산 공장", dest: "부산신항",
     work: "울산 공장 상차 → 신항 수출 반입", ask: null,
   },
 };
 
-export const DEFAULT_SENDER = { company: "○○운송", name: "배차 담당 ○○○", phone: "010-0000-0000" };
+export const DEFAULT_SENDER = { company: "○○포워딩", name: "수출입 담당 ○○○", phone: "010-0000-0000" };
 export const DEMO_TAG = "시연용 가상 데이터로 만든 초안입니다. 보내기 전에 내용을 확인하세요.";
 
 const T = (t) => clock(t, false);
@@ -90,7 +92,7 @@ export function cargoFacts(run, key, applied = false) {
   const changed = applied && choice && !choice.is_plan;
   return {
     key, cls, c, plan, choice, least, cur, best, verb, changed,
-    meta: CARGO_META[key] || { shipper: "화주 담당자", container: "-", origin: "", dest: "", work: c.label, ask: null },
+    meta: CARGO_META[key] || { customer: "화주", shipper: "화주 담당자", container: "-", origin: "", dest: "", work: c.label, ask: null },
     short: CARGO_SHORT[key] || c.label,
     pr: priorityOption(c),
     later: laterSame(c, least || choice || plan),
@@ -165,9 +167,10 @@ export function shipperDoc(run, key, opts = {}) {
     kv.push(["마감을 놓칠 가능성", cls === "notify" ? about(best.p_fail) : span(best.p_fail, best.p_upper)]);
     blocks.push({ kv });
     const acts = [];
-    if (sameIfEarly(run, key)) acts.push(`컨테이너가 나오는 대로 바로 싣도록 ${josa(verb === "도착" ? `터미널 ${T(best.time)} 도착` : `${T(best.time)} 출발`, ["으로", "로"])} 차량을 잡아 두었습니다.`);
-    else acts.push(`가장 덜 위험한 ${josa(verb === "도착" ? `터미널 ${T(best.time)} 도착` : `${T(best.time)} 출발`, ["으로", "로"])} 차량을 잡아 두었습니다.`);
-    if (f.pr) acts.push(`터미널에 우선 하역을 요청하겠습니다. 받아들여지면 놓칠 가능성이 ${josa(about(f.pr.p_if_approved), ["으로", "로"])} 낮아집니다.`);
+    if (sameIfEarly(run, key)) acts.push(`컨테이너가 나오는 대로 바로 싣도록 협력 운송사에 ${josa(verb === "도착" ? `터미널 ${T(best.time)} 도착` : `${T(best.time)} 출발`, ["으로", "로"])} 차량을 요청해 두었습니다.`);
+    else acts.push(`가장 덜 위험한 ${josa(verb === "도착" ? `터미널 ${T(best.time)} 도착` : `${T(best.time)} 출발`, ["으로", "로"])} 협력 운송사 차량을 요청해 두었습니다.`);
+    if (f.pr) acts.push(`선사·터미널에 우선 하역을 요청하겠습니다. 받아들여지면 놓칠 가능성이 ${josa(about(f.pr.p_if_approved), ["으로", "로"])} 낮아집니다.`);
+    if (meta.we) acts.push(meta.we);
     blocks.push({ h: "저희가 하는 일", list: acts });
     if (meta.ask) blocks.push({ h: "검토 부탁드립니다", p: meta.ask });
     blocks.push({ p: `${nextUpdateText(run)}에 상황을 다시 계산해 바뀌면 바로 연락드리겠습니다.` });
@@ -189,7 +192,7 @@ export function shipperDoc(run, key, opts = {}) {
     if (extra > 0) kv.push(["추가 운송비(예상)", fmtWon(extra)]);
     blocks.push({ kv });
     if (c.kind === "export") {
-      blocks.push({ h: "준비 부탁드립니다", p: `컨테이너 적입과 수출 서류를 ${T(choice.time - 0.5)}까지 마쳐 주십시오. 차량은 ${T(choice.time)}에 출발합니다.` });
+      blocks.push({ h: "준비 부탁드립니다", p: `컨테이너 적입과 수출 서류 준비를 ${T(choice.time - 0.5)}까지 마쳐 주십시오. 운송사 차량은 ${T(choice.time)}에 출발합니다(배차 요청은 저희가 바꿔 두었습니다).` });
     } else {
       blocks.push({ h: "준비 부탁드립니다", p: `${T(choice.time)} 도착에 맞춰 하차 인력을 준비해 주십시오.` });
     }
@@ -219,13 +222,14 @@ export function shipperDoc(run, key, opts = {}) {
   };
 }
 
-// ---------- 2. 기사 지시 ----------
+// ---------- 2. 운송사 배차 요청(기사님 화면 링크 포함) ----------
 export function driverDoc(run, key, opts = {}) {
   const sender = { ...DEFAULT_SENDER, ...(opts.sender || {}) };
   const f = cargoFacts(run, key, !!opts.applied);
   const { c, plan, cur, verb, meta } = f;
   const blocks = [];
-  const kv = [["화물", `${c.label}`], ["컨테이너", meta.container], ["작업", meta.work]];
+  blocks.push({ p: f.changed ? `아래 화물의 ${verb} 시각이 바뀌어 배차를 다시 요청드립니다.` : "아래 화물의 배차를 요청드립니다." });
+  const kv = [["화물", `${c.label}`], ["화주", meta.customer || meta.shipper], ["컨테이너", meta.container], ["작업", meta.work]];
   if (f.changed) kv.push(["시간 변경", `${verb} ${T(plan.time)} → ${T(cur.time)}`]);
   else if (f.cls === "change" && f.choice) kv.push(["변경 검토 중", `${verb} ${T(f.choice.time)} 권장 — 배차 확정 전입니다`]);
   if (c.kind === "export") {
@@ -245,15 +249,15 @@ export function driverDoc(run, key, opts = {}) {
   const L = run.nodes.findIndex((n) => n.id === "L");
   if (L >= 0 && nodeState(run, L) !== "ok") warn.push(`게이트·도로(양산·울산) ${STATE_WORD[nodeState(run, L)]} — 출발 전에 길 상황을 확인하세요.`);
   const jam = run.now.congested.filter((s) => s !== "육상");
-  if (jam.length && c.kind === "import") warn.push("터미널 혼잡 — 도착하면 배차실에 도착 시각을 알려 주세요.");
+  if (jam.length && c.kind === "import") warn.push("터미널 혼잡 — 기사님이 도착하면 도착 시각을 저희에게도 알려 주세요.");
   if (isH2(cur) && c.h2_note) warn.push(c.h2_note);
   if (warn.length) blocks.push({ h: "주의", list: warn });
   const url = opts.driverUrl ? opts.driverUrl : null;
-  if (url) blocks.push({ p: `도착 시각별 대기 시간 보기: ${url}` });
+  if (url) blocks.push({ h: "기사님께 전달해 주세요", p: `도착 시각별 터미널 대기 시간 화면: ${url}` });
   return {
-    kind: "driver", title: `[배차 지시] ${f.short}${f.changed ? " · 시간 변경" : ""}`,
-    meta: [["받는 사람", opts.driver || "차량 1호 기사님"], ["보내는 사람", senderLine(sender)], ["기준", asOf(run)]],
-    blocks, sign: `문의: ${sender.name} ${sender.phone}`, footer: DEMO_TAG, cls: f.cls, short: f.short,
+    kind: "driver", title: `[배차 요청] ${f.short}${f.changed ? " · 시간 변경" : ""}`,
+    meta: [["받는 사람", opts.trucker || "협력 운송사 배차 담당자"], ["보내는 사람", senderLine(sender)], ["기준", asOf(run)]],
+    blocks, sign: `문의: ${sender.company} ${sender.name} ${sender.phone}`, footer: DEMO_TAG, cls: f.cls, short: f.short,
   };
 }
 
@@ -285,7 +289,7 @@ export function internalDoc(run, opts = {}) {
       : `${f.verb} ${T(f.cur.time)}${isH2(f.cur) ? " 수소" : ""}`;
     return [f.short, f.c.deadline_label.replace(/ (야간 라인 투입|라인 투입|항공 반입 마감|선적 반입 마감)$/, ""), judge, act, `${fmtP(f.cls === "change" ? f.plan.p_fail : f.best.p_fail)}`, after];
   });
-  blocks.push({ h: "2. 오늘 화물 조치", table: { head: ["화물", "마감", "판단", "조치", "놓칠 확률", "조치 후"], rows } });
+  blocks.push({ h: "2. 오늘 관리 화물 조치", table: { head: ["화물", "마감", "판단", "조치", "놓칠 확률", "조치 후"], rows } });
   const saved = keys.map((key) => {
     const f = cargoFacts(run, key, true);
     return f.cls === "change" && f.choice ? f.plan.exp_cost - f.choice.exp_cost : 0;
@@ -307,14 +311,14 @@ export function internalDoc(run, opts = {}) {
   };
 }
 
-// ---------- 4. 항만 협의(터미널·항만공사·부산시) ----------
+// ---------- 4. 선사·터미널 협의(선사·터미널 운영사·항만공사) ----------
 export function portDoc(run, opts = {}) {
   const sender = { ...DEFAULT_SENDER, ...(opts.sender || {}) };
   const now = run.now;
   const st = statusView(run);
   const F = Object.fromEntries((now.factors || []).map((x) => [x.key, x]));
   const blocks = [];
-  blocks.push({ p: `${josa(sender.company, ["은", "는"])} 부산신항 출입 차량의 배차를 R-Delay로 관리하고 있습니다. ${asOf(run)} 계산 결과를 공유드리며, 대응 우선순위 협의를 요청드립니다.` });
+  blocks.push({ p: `${josa(sender.company, ["은", "는"])} 고객 화물의 부산신항 반출입 일정을 R-Delay로 관리하는 포워더입니다. ${asOf(run)} 계산 결과를 공유드리며, 대응 우선순위 협의를 요청드립니다.` });
   blocks.push({ h: "1. 지연 번짐 현황", kv: [
     ["경보", `${now.alarm}${isHold(run) ? " (판단 경계)" : ""}`],
     ["번짐 지수", `${fmtRd(now.rd_median)} — 지연 1건이 풀리기 전에 새 지연을 평균 ${fmtRd(now.rd_median)}건 만듭니다(1보다 크면 번짐)`],
@@ -337,15 +341,28 @@ export function portDoc(run, opts = {}) {
         : "한 가지 대응만으로는 번짐이 멈추지 않습니다. 여러 대응을 함께 검토해야 합니다.";
     blocks.push({ p: lead });
   }
-  blocks.push({ h: "3. 운송사 쪽 영향", list: sortedCargo(run).map((key) => {
+  blocks.push({ h: "3. 고객 화물 영향", list: sortedCargo(run).map((key) => {
     const f = cargoFacts(run, key, false);
     if (f.cls === "change") return `${f.short}: 시간 변경 필요 — 현행 계획이면 놓칠 확률 ${fmtP(f.plan.p_fail)}, 바꾸면 ${fmtP(f.choice.p_fail)}`;
     return `${f.short}: ${ACTION_WORD[f.cls]} — 놓칠 확률 ${fmtP(f.best.p_fail)}`;
   }) });
+  // 요청 사항: 우선 하역이 받아들여지면 위험이 줄어드는 수입 화물, 반입 제한 공지에 맞춰 시각을 바꾼 수출 화물
+  const asks = sortedCargo(run).map((key) => {
+    const f = cargoFacts(run, key, false);
+    if (f.pr && ["notify", "hold-conservative", "change"].includes(f.cls)) {
+      const base = f.cls === "change" ? f.plan.p_fail : f.best.p_fail;
+      return `${f.short}(${f.meta.container}): 우선 하역 요청 — 받아들여지면 놓칠 확률 ${fmtP(base)} → ${fmtP(f.pr.p_if_approved)}`;
+    }
+    if (f.c.kind === "export" && f.c.gate_closed && f.cls === "change" && f.choice) {
+      return `${f.short}(${f.meta.container}): 반입 제한(${T(f.c.gate_closed[0])}~${T(f.c.gate_closed[1])}) 전에 들어가도록 ${josa(`${T(f.choice.time)} 출발`, ["으로", "로"])} 바꿉니다. 제한 시간이 바뀌면 바로 알려 주십시오.`;
+    }
+    return null;
+  }).filter(Boolean);
+  if (asks.length) blocks.push({ h: "4. 요청드립니다", list: asks });
   blocks.push({ note: "원인 판정은 모형상 배분이며 책임 소재 판단에 쓰지 않습니다." });
   return {
     kind: "port", title: `부산신항 지연 번짐 공유 — ${asOf(run)}`,
-    meta: [["받는 사람", opts.port || "터미널 운영사·부산항만공사 담당자"], ["보내는 사람", senderLine(sender)], ["상황", SCENARIO_CHIP[run.meta.scenario] || run.meta.scenario_label]],
+    meta: [["받는 사람", opts.port || "선사·터미널 운영사·부산항만공사 담당자"], ["보내는 사람", senderLine(sender)], ["상황", SCENARIO_CHIP[run.meta.scenario] || run.meta.scenario_label]],
     blocks, sign: `${sender.company} ${sender.name}`, footer: `R-Delay 모형 추정 · ${DEMO_TAG}`, cls: null, short: "오늘 전체",
   };
 }
@@ -403,7 +420,7 @@ export function docToHTML(doc) {
   return parts.join("");
 }
 
-// 기사님 휴대폰 화면 주소(배차 담당이 보내는 링크)
+// 기사님 휴대폰 화면 주소(포워더가 배차 요청에 넣어 운송사를 거쳐 기사님께 가는 링크)
 export function driverLink(base, run, key, applied = false) {
   const u = new URL("driver.html", base);
   u.searchParams.set("s", run.meta.scenario);
