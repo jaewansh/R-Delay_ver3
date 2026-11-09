@@ -224,7 +224,7 @@ a^\star=\arg\min_{a\in\mathcal A_{\mathrm{feas}},\ \hat p^{+}(a)\le\varepsilon}\
 
 ## 참고문헌
 
-- [P1] A mobility-informed SIR model for regional transmission dynamics: Evidence from subway mobility data in Korea, 2016–2023. 한국자료분석학회지 최종원고, 2026(공동 제1저자 연구). 이 프로젝트는 [P1]의 이동량 보정 계수 구조와 이동 기여·고유 전파 분리, 필터·평활 비교를 물류로 옮겼습니다. 후행 창 실시간화, 결합행렬, $R_d$, 원인 판정 규칙과 보류 구간, 관측 결합, 선석 대기열, 배차 결정은 새로 만든 부분입니다.
+- [P1] A mobility-informed SIR model for regional transmission dynamics: Evidence from subway mobility data in Korea, 2016–2023. 한국자료분석학회지 2026년 28권 5호 게재(공동 제1저자 연구). 이 프로젝트는 [P1]의 이동량 보정 계수 구조와 이동 기여·고유 전파 분리, 필터·평활 비교를 물류로 옮겼습니다. 후행 창 실시간화, 결합행렬, $R_d$, 원인 판정 규칙과 보류 구간, 관측 결합, 선석 대기열, 배차 결정은 새로 만든 부분입니다.
 - Diekmann, Heesterbeek & Roberts (2010). The construction of next-generation matrices for compartmental epidemic models. *J. R. Soc. Interface* 7, 873–885.
 - Caswell (2001). *Matrix Population Models*, 2nd ed. (Perron 탄력성)
 - Gordon, Salmond & Smith (1993). Novel approach to nonlinear/non-Gaussian Bayesian state estimation. *IEE Proc. F* 140, 107–113. (부트스트랩 입자필터)
